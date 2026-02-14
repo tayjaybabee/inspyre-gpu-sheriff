@@ -30,7 +30,6 @@ from ..windows.snapshot import IncidentSnapshotter
 from ..windows.task_scheduler import TaskSchedulerManager
 
 
-
 @dataclass
 class GPUSheriff:
     config: SheriffConfig
