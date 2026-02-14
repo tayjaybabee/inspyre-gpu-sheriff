@@ -1,0 +1,24 @@
+[tool.poetry]
+name = 'inspyre-gpu-sheriff'
+version = '0.2.0'
+description = 'Windows-first GPU watchdog that detects display-driver incidents and recovers via an escalation ladder.'
+authors = ['Taylor <you@example.com>']
+readme = 'README.md'
+packages = [{ include = 'inspyre_gpu_sheriff', from = 'src' }]
+
+[tool.poetry.dependencies]
+python = '^3.11'
+psutil = '^5.9.8'
+
+[tool.poetry.scripts]
+inspy-gpu = 'inspyre_gpu_sheriff.cli:main'
+
+[tool.poetry.group.dev.dependencies]
+ruff = '^0.6.2'
+
+[tool.ruff]
+line-length = 100
+
+[build-system]
+requires = ['poetry-core']
+build-backend = 'poetry.core.masonry.api'
