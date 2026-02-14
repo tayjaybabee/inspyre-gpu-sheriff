@@ -9,6 +9,7 @@ packages = [{ include = 'inspyre_gpu_sheriff', from = 'src' }]
 [tool.poetry.dependencies]
 python = '^3.11'
 psutil = '^5.9.8'
+rich = '^13.7.0'
 
 [tool.poetry.scripts]
 inspy-gpu = 'inspyre_gpu_sheriff.cli:main'

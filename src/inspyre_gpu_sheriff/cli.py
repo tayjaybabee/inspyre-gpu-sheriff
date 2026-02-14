@@ -22,6 +22,12 @@ import argparse
 import json
 import logging
 
+from rich.console import Console
+from rich.table import Table
+from rich.panel import Panel
+from rich.text import Text
+from rich import box
+
 from .config import load_config, save_config, config_path
 from .logging_ import setup_logging
 from .platform_ import is_windows
@@ -30,6 +36,79 @@ from .core.doctor import GPUSheriff
 
 def _pretty(obj: object) -> str:
     return json.dumps(obj, indent=2, ensure_ascii=False)
+
+
+def _format_status_rich(info: dict) -> None:
+    """Format and display status information using rich library."""
+    console = Console()
+    
+    # Display PnP Display Devices
+    devices = info.get('pnp_display_devices', [])
+    if devices:
+        table = Table(title="PnP Display Devices", box=box.ROUNDED, show_header=True, header_style="bold magenta")
+        table.add_column("Friendly Name", style="cyan", no_wrap=False)
+        table.add_column("Instance ID", style="yellow", no_wrap=False)
+        table.add_column("Status", style="green")
+        table.add_column("Problem Code", style="red")
+        
+        for device in devices:
+            friendly_name = device.get('FriendlyName', 'N/A')
+            instance_id = device.get('InstanceId', 'N/A')
+            status = device.get('Status', 'N/A')
+            problem_code = str(device.get('ProblemCode', 'None'))
+            
+            # Color code the status
+            if status == 'OK':
+                status_text = Text(status, style="bold green")
+            else:
+                status_text = Text(status, style="bold red")
+            
+            table.add_row(friendly_name, instance_id, status_text, problem_code)
+        
+        console.print(table)
+    
+    # Display Auto-selected Target
+    auto_target = info.get('auto_target_instance_id', '')
+    if auto_target:
+        # Find the friendly name for the auto-selected target
+        target_name = "Unknown"
+        for device in devices:
+            if device.get('InstanceId') == auto_target:
+                target_name = device.get('FriendlyName', 'Unknown')
+                break
+        
+        panel = Panel(
+            f"[bold cyan]{target_name}[/bold cyan]\n[yellow]{auto_target}[/yellow]",
+            title="[bold green]Auto-Selected Target GPU[/bold green]",
+            border_style="green",
+            box=box.DOUBLE
+        )
+        console.print(panel)
+    
+    # Display Config Target if set
+    config_target = info.get('config_target_instance_id', '')
+    if config_target:
+        # Find the friendly name for the config target
+        target_name = "Unknown"
+        for device in devices:
+            if device.get('InstanceId') == config_target:
+                target_name = device.get('FriendlyName', 'Unknown')
+                break
+        
+        panel = Panel(
+            f"[bold cyan]{target_name}[/bold cyan]\n[yellow]{config_target}[/yellow]",
+            title="[bold blue]Configured Target GPU[/bold blue]",
+            border_style="blue",
+            box=box.DOUBLE
+        )
+        console.print(panel)
+    elif not config_target:
+        console.print(Panel(
+            "[dim]No specific target configured - using auto-selection[/dim]",
+            title="[bold blue]Configured Target GPU[/bold blue]",
+            border_style="blue",
+            box=box.ROUNDED
+        ))
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -71,7 +150,7 @@ def main() -> None:
     match args.cmd:
         case 'status':
             info = sheriff.status()
-            print(_pretty(info))
+            _format_status_rich(info)
         case 'watch':
             sheriff.watch_forever()
         case 'reset':
