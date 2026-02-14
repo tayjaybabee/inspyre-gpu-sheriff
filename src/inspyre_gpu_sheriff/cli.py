@@ -38,6 +38,14 @@ def _pretty(obj: object) -> str:
     return json.dumps(obj, indent=2, ensure_ascii=False)
 
 
+def _get_device_friendly_name(devices: list[dict], instance_id: str) -> str:
+    """Get the friendly name for a device given its instance ID."""
+    for device in devices:
+        if device.get('InstanceId') == instance_id:
+            return device.get('FriendlyName', 'Unknown')
+    return 'Unknown'
+
+
 def _format_status_rich(info: dict) -> None:
     """Format and display status information using rich library."""
     console = Console()
@@ -70,12 +78,7 @@ def _format_status_rich(info: dict) -> None:
     # Display Auto-selected Target
     auto_target = info.get('auto_target_instance_id', '')
     if auto_target:
-        # Find the friendly name for the auto-selected target
-        target_name = "Unknown"
-        for device in devices:
-            if device.get('InstanceId') == auto_target:
-                target_name = device.get('FriendlyName', 'Unknown')
-                break
+        target_name = _get_device_friendly_name(devices, auto_target)
         
         panel = Panel(
             f"[bold cyan]{target_name}[/bold cyan]\n[yellow]{auto_target}[/yellow]",
@@ -88,12 +91,7 @@ def _format_status_rich(info: dict) -> None:
     # Display Config Target if set
     config_target = info.get('config_target_instance_id', '')
     if config_target:
-        # Find the friendly name for the config target
-        target_name = "Unknown"
-        for device in devices:
-            if device.get('InstanceId') == config_target:
-                target_name = device.get('FriendlyName', 'Unknown')
-                break
+        target_name = _get_device_friendly_name(devices, config_target)
         
         panel = Panel(
             f"[bold cyan]{target_name}[/bold cyan]\n[yellow]{config_target}[/yellow]",
@@ -102,7 +100,7 @@ def _format_status_rich(info: dict) -> None:
             box=box.DOUBLE
         )
         console.print(panel)
-    elif not config_target:
+    else:
         console.print(Panel(
             "[dim]No specific target configured - using auto-selection[/dim]",
             title="[bold blue]Configured Target GPU[/bold blue]",
