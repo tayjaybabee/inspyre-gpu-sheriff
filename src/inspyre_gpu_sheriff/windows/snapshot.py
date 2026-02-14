@@ -5,7 +5,6 @@ File: snapshot.py
 
 Description:
     Collect incident snapshots for debugging:
-    - dxdiag adapters
     - PnP display devices
     - recent System log events (as already detected)
     - running processes (top N by CPU time)
@@ -20,7 +19,6 @@ from dataclasses import dataclass
 import logging
 import psutil
 
-from .dxdiag import DxDiag
 from .pnp import PnpGpuResolver
 
 
@@ -32,7 +30,6 @@ class IncidentSnapshotter:
     process_limit: int = 50
 
     def collect(self, *, eventlog_incident: dict | None = None) -> dict:
-        dx = DxDiag(self.logger)
         resolver = PnpGpuResolver(
             prefer_vendor=self.prefer_vendor,
             prefer_name_contains=self.prefer_name_contains,
@@ -42,7 +39,6 @@ class IncidentSnapshotter:
         procs = self._top_processes(limit=self.process_limit)
 
         snap = {
-            'dxdiag_adapters': dx.list_display_adapters(),
             'pnp_display_devices': resolver.list_display_devices(),
             'processes_top': procs,
             'eventlog_incident': eventlog_incident,

@@ -28,7 +28,6 @@ from ..windows.pnp import PnpGpuBouncer, PnpGpuResolver
 from ..windows.devcon import DevconGpuBouncer
 from ..windows.snapshot import IncidentSnapshotter
 from ..windows.task_scheduler import TaskSchedulerManager
-from ..windows.dxdiag import DxDiag
 
 
 @dataclass
@@ -55,10 +54,10 @@ class GPUSheriff:
     def status(self) -> dict:
         if not is_windows():
             raise RuntimeError('Windows only.')
-        dx = DxDiag(self.logger)
+
         resolver = self._resolver()
+
         return {
-            'dxdiag_adapters': dx.list_display_adapters(),
             'pnp_display_devices': resolver.list_display_devices(),
             'auto_target_instance_id': resolver.pick_best_gpu_instance_id(),
             'config_target_instance_id': self.config.device_instance_id,
